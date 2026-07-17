@@ -119,23 +119,20 @@ router.put('/:id', (req, res) => {
             SET titulo = ?, descricao = ?
             WHERE id_os = ?
         `;
-        return database.query(query, [titulo, descricao || null, id], (err, result) => {
+        
+        const descricaoTratada = (descricao && descricao.trim() !== '') ? descricao : '';
+
+        return database.query(query, [titulo, descricaoTratada, id], (err, result) => {
             if (err) {
-                console.error('Erro ao editar chamado:', err);
-                return res.status(500).json({ erro: 'Erro interno ao editar o chamado.' });
+                console.error('Erro ao editar chamado no MySQL:', err);
+                return res.status(500).json({ erro: 'Erro interno do banco ao editar o chamado.' });
             }
             if (result.affectedRows === 0) {
                 return res.status(404).json({ erro: 'Chamado não encontrado.' });
             }
-            res.json({ mensagem: 'Chamado atualizado com sucesso!' });
+            return res.json({ mensagem: 'Chamado atualizado com sucesso!' });
         });
     }
-
-    return res.status(400).json({ erro: 'Informe "status" ou "titulo" para atualizar o chamado.' });
-});
-
-router.delete('/:id', (req, res) => {
-    const { id } = req.params;
 
     // Exclusão sem trava de status no banco: a regra de "só o cliente pode excluir enquanto
     // está em análise" é controlada no frontend do cliente. O admin (dashboard) pode excluir
